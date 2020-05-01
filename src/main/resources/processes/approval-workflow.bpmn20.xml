@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+	xmlns:activiti="http://activiti.org/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" targetNamespace="Examples">
+
+	<process id="approvalProcess" name="approval Process">
+		<startEvent id="theStart" />
+		
+		<sequenceFlow sourceRef="theStart" targetRef="theTask0" />
+
+		<userTask id="theTask0" name="Task 0" activiti:assignee="${user.employeeCode}">
+			<documentation>
+				Pending With Requester
+			</documentation>
+		</userTask>
+		
+		<!-- <sequenceFlow sourceRef="theTask0" targetRef="theTask1" /> -->
+<sequenceFlow  sourceRef="theTask0" targetRef="validateGateway0"/>
+
+<exclusiveGateway id="validateGateway0"  /> 
+
+<sequenceFlow id="f1" sourceRef="validateGateway0" targetRef="theTask1">
+   
+  <conditionExpression xsi:type="tFormalExpression"><![CDATA[${user.approver1 != ""}]]></conditionExpression>
+</sequenceFlow>
+<sequenceFlow id="f2" sourceRef="validateGateway0" targetRef="notification2">
+  <conditionExpression xsi:type="tFormalExpression"><![CDATA[${user.approver1 == ""}]]></conditionExpression>
+</sequenceFlow>
+
+
+
+		<userTask id="theTask1" name="Task 1" activiti:assignee="${user.approver1}">
+			<documentation>
+				Pending with First Level Approver
+			</documentation>
+		</userTask>
+
+ <sequenceFlow  sourceRef="theTask1" targetRef="validateGateway"/>
+   
+ <exclusiveGateway id="validateGateway"  /> 
+ <sequenceFlow id="flow2" sourceRef="validateGateway" targetRef="theTask0">
+   
+  <conditionExpression xsi:type="tFormalExpression"><![CDATA[${approvalStatus == "R"} ]]></conditionExpression>
+</sequenceFlow>
+<sequenceFlow id="flow3" sourceRef="validateGateway" targetRef="theTask2">
+   
+  <conditionExpression xsi:type="tFormalExpression"><![CDATA[${user.approver2 != ""}]]></conditionExpression>
+</sequenceFlow>
+<sequenceFlow id="flow4" sourceRef="validateGateway" targetRef="notification2">
+  <conditionExpression xsi:type="tFormalExpression"><![CDATA[${user.approver2 == ""}]]></conditionExpression>
+</sequenceFlow>
+	<!-- 	<sequenceFlow sourceRef="theTask1" targetRef="theTask2" /> -->
+
+		<userTask id="theTask2" name="Task 2" activiti:assignee="${user.approver2}">
+			<documentation>
+				Pending with Second Level Approver
+			</documentation>
+		</userTask>
+		
+		
+		
+		
+
+		 <sequenceFlow sourceRef="theTask2" targetRef="notification" /> 
+		 
+		 <scriptTask id="notification" name="final Notice" scriptFormat="groovy">
+			<script>
+				println 'finish Process.'
+			</script>
+			
+		</scriptTask>
+		 
+		 
+		 	<userTask id="reassign" name="Reassign" activiti:assignee="${user.name}">
+			<documentation>
+				Rejected by approver
+			</documentation>
+		</userTask>
+         
+         <sequenceFlow sourceRef="reassign" targetRef="notification" /> 
+         
+		
+		
+		<scriptTask id="notification2" name="final Notice" scriptFormat="groovy">
+			<script>
+				println 'finish Process 2.'
+			</script>
+			
+		</scriptTask>
+		<scriptTask id="notificationreject" name="Reject Notification" scriptFormat="groovy">
+			<script>
+				println 'Rejected'
+			</script>
+			
+		</scriptTask>
+		
+		  <!--   <serviceTask id="sid-59C993BD-38A0-4DC3-97BC-F58FD94E38A9" name="Send rejection email" activiti:type="mail">
+      <extensionElements>
+        <activiti:field name="to">
+          <activiti:expression>${applicant.email}</activiti:expression>
+        </activiti:field>
+        <activiti:field name="subject">
+          <activiti:string><![CDATA[Your application has been rejected]]></activiti:string>
+        </activiti:field>
+        <activiti:field name="html">
+          <activiti:expression>Dear ${applicant.name},
+
+We're sorry to inform you that your recent application has been rejected. We have stored your information in our data systems and will contact you if in the future a potential matching application is posted on our website.
+
+Regards,
+My Corp</activiti:expression>
+        </activiti:field>
+      </extensionElements>
+    </serviceTask> -->
+		<!-- <userTask id="notificationTask" name="final Notice task" >
+			<documentation>
+				finish Process
+			</documentation>
+		</userTask> -->
+
+		<sequenceFlow sourceRef="notification" targetRef="theEnd" />
+		<endEvent id="theEnd" />
+	</process>
+
+</definitions>
